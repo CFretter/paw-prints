@@ -1,5 +1,6 @@
 field,display_name,btn,hidden,sort_name,facet_name
 date,Date,,,Date Created
+time,Time,,,,
 description,,,true,
 creator,Creator,,,
 species,,,true,,Species
