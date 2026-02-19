@@ -23,7 +23,7 @@ title: Paw prints in concrete
 tagline: petrified interspecies interaction 
 # description appears in meta tags and other locations
 # this description might appear in search result lists, keep around 160 characters max
-description: "CollectionBuilder-CSV is a template for creating digital collection exhibits using static web technology."
+description: "A photographic archive of paw prints preserved in concrete — traces of interspecies encounters accidentaly frozen in time."
 # keywords, a short list of subjects describing the collection, separated by semicolon, to appear in rich markup
 keywords: paw, print, concrete
 # creator of the digital collection, to appear in meta tags; we typically use our GitHub usernames but feel free to just use your name
@@ -50,11 +50,11 @@ metadata: paw-print-repository
 #
 # Enter name and link for your organization (replacing the name and links below)
 # These values will be used in attribution and data 
-organization-name: "Center for Digital Inquiry and Learning (CDIL)"
-organization-link: https://cdil.lib.uidaho.edu/
-# Add logo image links if you would like them to appear in banner and footer. Delete or leave blank to remove logos.
-organization-logo-banner: https://www.lib.uidaho.edu/collectionbuilder/cdil-black.png
-organization-logo-nav: https://www.lib.uidaho.edu/collectionbuilder/cdil-white.png
+# organization-name: "Center for Digital Inquiry and Learning (CDIL)"
+# organization-link: https://cdil.lib.uidaho.edu/
+## Add logo image links if you would like them to appear in banner and footer. Delete or leave blank to remove logos.
+# organization-logo-banner: https://www.lib.uidaho.edu/collectionbuilder/cdil-black.png
+# organization-logo-nav: https://www.lib.uidaho.edu/collectionbuilder/cdil-white.png
 
 ##########
 # ROBOTS EXCLUDE

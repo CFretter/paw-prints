@@ -14,6 +14,7 @@ import re
 import shutil
 from pathlib import Path
 
+import reverse_geocoder
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 
@@ -118,6 +119,13 @@ def main():
         lat, lon = extract_gps(src)
         title = f"Paw Print {i}" + (f" ({date})" if date else "")
 
+        location = ""
+        if lat and lon:
+            result = reverse_geocoder.search([(float(lat), float(lon))], verbose=False)[0]
+            city = result.get("name", "")
+            country = result.get("cc", "")
+            location = f"{city}, {country}" if city else country
+
         obj_path = f"/objects/{dest_name}"
         rows.append({
             "objectid": oid,
@@ -125,7 +133,7 @@ def main():
             "date": date,
             "description": "",
             "subject": "",
-            "location": "",
+            "location": location,
             "latitude": lat,
             "longitude": lon,
             "type": "Image",
