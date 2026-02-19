@@ -21,3 +21,19 @@ body {
 [id^="cloud-div-"] .btn-outline-primary {
     border-color: #79c0ff !important;
 }
+
+/* location labels on item pages — styled to match word cloud buttons */
+.field-location a {
+    display: inline-block;
+    padding: 0.25em 0.75em;
+    border: 1px solid #79c0ff;
+    border-radius: 0.375rem;
+    color: #79c0ff;
+    text-decoration: none;
+    margin-right: 0.5rem;
+
+    &:hover {
+        background-color: #79c0ff;
+        color: #000;
+    }
+}
