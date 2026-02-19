@@ -125,6 +125,7 @@ $toc-a-color: #191919 !default;
 
 /* map */
 #mapContainer { height: 750px; z-index: 98; }
+.leaflet-container img { max-width: none; }
 .map-thumb {
     height: 100px;
     max-width: 100%;

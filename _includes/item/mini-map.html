@@ -40,20 +40,26 @@
     var Esri_WorldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
     });
+    var CartoDB_DarkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20
+    });
     /* add base map switcher */
     var baseMaps = {
         "Esri World StreetMap": Esri_WorldStreetMap,
         "Esri National Geo": Esri_NatGeoWorldMap,
-        "Esri Imagery": Esri_WorldImagery
+        "Esri Imagery": Esri_WorldImagery,
+        "Dark": CartoDB_DarkMatter
     };
     L.control.layers(baseMaps).addTo(map);
     /* load base map */
-    Esri_WorldImagery.addTo(map);
+    CartoDB_DarkMatter.addTo(map);
     /* add fullscreen control */ 
     map.addControl(new L.Control.Fullscreen());
     {% unless include.map-marker == false %}
     /* add marker */ 
-    L.marker(mapCenter).addTo(map)
+    L.circleMarker(mapCenter, { radius: 7, fillColor: '#c4843c', color: '#7a4f20', weight: 2, fillOpacity: 0.85 }).addTo(map)
     .bindPopup('{{ page.title | escape }}');{% endunless %}
 
 </script>

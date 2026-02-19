@@ -56,12 +56,18 @@
         maxZoom: 19,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     });
+    var CartoDB_DarkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20
+    });
     /* add base map switcher */
     var baseMaps = {
         "Esri World StreetMap": Esri_WorldStreetMap,
         "Esri National Geo": Esri_NatGeoWorldMap,
         "Esri Imagery": Esri_WorldImagery,
-        "Open Street Map": OpenStreetMap_Mapnik
+        "Open Street Map": OpenStreetMap_Mapnik,
+        "Dark": CartoDB_DarkMatter
     };
     L.control.layers(baseMaps).addTo(map);
     /* load base map */
@@ -140,7 +146,13 @@
         layer.bindPopup(popupTemplate);
     }
     function objectMarkers(feature,latlng) {
-        var marker = L.marker(latlng, {alt: feature.properties.title});
+        var marker = L.circleMarker(latlng, {
+            radius: 7,
+            fillColor: '#c4843c',
+            color: '#7a4f20',
+            weight: 2,
+            fillOpacity: 0.85
+        });
         {% if site.data.theme.map-cluster == true %}markers.addLayer(marker);{% endif %}
         return marker;
     }
@@ -203,3 +215,12 @@
 })();
 
 </script>
+<style>
+.marker-cluster-small  { background-color: rgba(140, 85, 30, 0.45); }
+.marker-cluster-small div  { background-color: rgba(196, 132, 60, 0.75); }
+.marker-cluster-medium { background-color: rgba(140, 85, 30, 0.45); }
+.marker-cluster-medium div { background-color: rgba(196, 132, 60, 0.75); }
+.marker-cluster-large  { background-color: rgba(140, 85, 30, 0.45); }
+.marker-cluster-large div  { background-color: rgba(196, 132, 60, 0.75); }
+.marker-cluster span { color: #f5e6d0; }
+</style>
