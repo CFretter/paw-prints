@@ -22,6 +22,30 @@ body {
     border-color: #79c0ff !important;
 }
 
+/* search page — mauve button, light gray search box */
+.btn-cb-search {
+    background-color: #b57bbd;
+    border-color: #b57bbd;
+    color: #fff;
+
+    &:hover, &:focus {
+        background-color: #9d63a5;
+        border-color: #9d63a5;
+        color: #fff;
+    }
+}
+
+#lunrSearchBox,
+#filterTextBox,
+#nav-search-box {
+    background-color: #c8c8c8;
+    color: #222;
+
+    &::placeholder {
+        color: #666;
+    }
+}
+
 /* location labels on item pages — styled to match word cloud buttons */
 .field-location a {
     display: inline-block;

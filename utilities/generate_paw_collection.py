@@ -10,11 +10,13 @@ Run from the repo root or from the utilities/ directory:
 """
 
 import csv
+import random
 import re
 import shutil
 from pathlib import Path
 
 import reverse_geocoder
+from tqdm import tqdm
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 
@@ -30,7 +32,9 @@ FIELDNAMES = [
     "date",
     "description",
     "subject",
+    "species",
     "location",
+    "country",
     "latitude",
     "longitude",
     "type",
@@ -101,7 +105,7 @@ def main():
     rows = []
     errors = []
 
-    for i, src_path in enumerate(paths, 1):
+    for i, src_path in enumerate(tqdm(paths, desc="Processing images"), 1):
         src = Path(src_path)
         oid = f"paw_{i:03d}"
         ext = src.suffix.lower() or ".jpg"
@@ -119,12 +123,34 @@ def main():
         lat, lon = extract_gps(src)
         title = f"Paw Print {i}" + (f" ({date})" if date else "")
 
+        CC_TO_NAME = {
+            "AF": "Afghanistan", "AL": "Albania", "DZ": "Algeria", "AR": "Argentina",
+            "AU": "Australia", "AT": "Austria", "BE": "Belgium", "BR": "Brazil",
+            "BG": "Bulgaria", "CA": "Canada", "CL": "Chile", "CN": "China",
+            "CO": "Colombia", "HR": "Croatia", "CZ": "Czech Republic", "DK": "Denmark",
+            "EG": "Egypt", "EE": "Estonia", "FI": "Finland", "FR": "France",
+            "DE": "Germany", "GR": "Greece", "HK": "Hong Kong", "HU": "Hungary",
+            "IN": "India", "ID": "Indonesia", "IE": "Ireland", "IL": "Israel",
+            "IT": "Italy", "JP": "Japan", "JO": "Jordan", "KZ": "Kazakhstan",
+            "KE": "Kenya", "KR": "South Korea", "LV": "Latvia", "LT": "Lithuania",
+            "LU": "Luxembourg", "MY": "Malaysia", "MX": "Mexico", "NL": "Netherlands",
+            "NZ": "New Zealand", "NG": "Nigeria", "NO": "Norway", "PK": "Pakistan",
+            "PE": "Peru", "PH": "Philippines", "PL": "Poland", "PT": "Portugal",
+            "RO": "Romania", "RU": "Russia", "SA": "Saudi Arabia", "SG": "Singapore",
+            "SK": "Slovakia", "ZA": "South Africa", "ES": "Spain", "SE": "Sweden",
+            "CH": "Switzerland", "TW": "Taiwan", "TH": "Thailand", "TR": "Turkey",
+            "UA": "Ukraine", "GB": "United Kingdom", "US": "United States",
+            "VN": "Vietnam",
+        }
+
         location = ""
+        country_name = ""
         if lat and lon:
             result = reverse_geocoder.search([(float(lat), float(lon))], verbose=False)[0]
             city = result.get("name", "")
-            country = result.get("cc", "")
-            location = f"{city}, {country}" if city else country
+            cc = result.get("cc", "")
+            location = f"{city}, {cc}" if city else cc
+            country_name = CC_TO_NAME.get(cc, cc)
 
         obj_path = f"/objects/{dest_name}"
         rows.append({
@@ -133,7 +159,9 @@ def main():
             "date": date,
             "description": "",
             "subject": "",
+            "species": random.choice(["species1", "species2", "species3"]),
             "location": location,
+            "country": country_name,
             "latitude": lat,
             "longitude": lon,
             "type": "Image",

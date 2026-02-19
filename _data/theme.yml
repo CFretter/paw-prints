@@ -34,7 +34,7 @@ browse-buttons: true # true / false, adds previous/next arrows to items, but inc
 ##########
 # SUBJECTS PAGE
 #
-subjects-fields: subject;creator # set of fields separated by ; to be featured in the cloud (leave blank or comment out to not generate)
+subjects-fields: species # set of fields separated by ; to be featured in the cloud (leave blank or comment out to not generate)
 subjects-min: 1 # min size for subject cloud, too many terms = slow load time!
 subjects-stopwords: # set of subjects separated by ; that will be removed from display, e.g. boxers;boxing
 
@@ -111,8 +111,8 @@ bootswatch: slate
 base-font-size: 1.2em
 text-color: "#d0d0d0"
 link-color: "#79c0ff"
-base-font-family: Lato
-font-cdn: <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+base-font-family: "Crimson Text"
+font-cdn: <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&display=swap" rel="stylesheet">
 
 # THEME ICONS [optional!]
 # default icons can be overridden or new icons can be added using "icons" object

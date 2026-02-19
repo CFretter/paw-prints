@@ -2,6 +2,7 @@ field,display_name,btn,hidden,sort_name,facet_name
 date,Date,,,Date Created
 description,,,true,
 creator,Creator,,,
-subject,,true
+species,,,true,,Species
 location,,true,,,Location Depicted
+country,,true,,,Country
 identifier,,,true,Identifier
