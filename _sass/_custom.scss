@@ -8,6 +8,10 @@ body {
     background-color: #30353b !important;
 }
 
+.bg-opacity-90 {
+    --bs-bg-opacity: 0.90 !important;
+}
+
 /* word cloud border — matches link-color in theme.yml */
 [id^="cloud-div-"] {
     border-color: #79c0ff !important;

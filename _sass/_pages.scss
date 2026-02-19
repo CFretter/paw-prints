@@ -11,6 +11,17 @@ $toc-a-color: #191919 !default;
     background-color: rgba(37, 36, 36, 0.72);
 }
 
+/* home page hero banner */
+#home-banner {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#home-title-box {
+    width: 100%;
+}
+
 /* item page */
 .gallery-img {
     cursor: pointer;
@@ -125,7 +136,7 @@ $toc-a-color: #191919 !default;
 
 /* map */
 #mapContainer { height: 750px; z-index: 98; }
-.leaflet-container img { max-width: none; }
+.leaflet-container img { max-width: none !important; border: none !important; }
 .map-thumb {
     height: 100px;
     max-width: 100%;

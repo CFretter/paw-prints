@@ -53,7 +53,7 @@
 </style>
 <div id="home-banner" class="mb-0 position-relative">
     <div id="home-title-box">
-        <div class="p-2 text-center text-white bg-dark bg-opacity-75">
+        <div class="p-2 text-center text-black bg-dark bg-opacity-90">
             {% if site.organization-logo-nav %}
             <a class="d-none d-md-block" href="{{ site.organization-link }}">
                 <img id="home-banner-logo" src="{{ site.organization-logo-nav | relative_url }}" alt="{{ site.organization-name | escape }} home" >
@@ -69,8 +69,8 @@
 <div class="container">
     <div class="row align-items-center">
         <div id="title" class="{% if site.organization-logo-banner %}col-md-9{% else %}col-12{% endif %}">
-            <h1 class="mt-2"><a class="text-dark" href="{{ '/' | relative_url }}" >{{ site.title }}</a></h1>	 
-            {% if site.tagline %}<p>{{ site.tagline }}</p>{% endif %}
+            <h1 class="mt-2"><a class="text-black" href="{{ '/' | relative_url }}" >{{ site.title }}</a></h1>	 
+            {% if site.tagline %}<p class="text-black">{{ site.tagline }}</p>{% endif %}
         </div>
         {% if site.organization-logo-banner %}
         <div class="col-md-3 d-none d-lg-block text-end">
