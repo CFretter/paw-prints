@@ -49,6 +49,7 @@ FIELDNAMES = [
     "image_small",
     "image_thumb",
     "spotter",
+    "source_file",
 ]
 
 
@@ -83,13 +84,29 @@ def extract_gps(image_path: Path):
         return "", ""
 
 
-def extract_date(path_str: str) -> str:
-    """Try to pull a date out of the filename (YYYYMMDD) or fall back to the year folder."""
+def extract_date(path_str: str, image_path: Path = None) -> str:
+    """Try to pull a date from filename (YYYYMMDD), then EXIF, then year folder."""
     stem = Path(path_str).stem
-    # Match YYYYMMDD at the start or anywhere in the stem
     m = re.search(r"(\d{4})(\d{2})(\d{2})", stem)
     if m:
         return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+    # Try EXIF DateTimeOriginal
+    if image_path:
+        try:
+            img = Image.open(image_path)
+            exif_raw = img._getexif()
+            if exif_raw:
+                for tag_id, value in exif_raw.items():
+                    if TAGS.get(tag_id) in ("DateTimeOriginal", "DateTime"):
+                        parts = str(value).strip().split(" ")
+                        if parts:
+                            d = parts[0].split(":")
+                            if len(d) == 3 and len(d[0]) == 4:
+                                y, mo, dy = int(d[0]), int(d[1]), int(d[2])
+                                if 1900 <= y <= 2100 and 1 <= mo <= 12 and 1 <= dy <= 31:
+                                    return f"{d[0]}-{d[1]}-{d[2]}"
+        except Exception:
+            pass
     # Fall back: grab a 4-digit year from the path (e.g. \2023\)
     m2 = re.search(r"[/\\](\d{4})[/\\]", path_str)
     if m2:
@@ -143,7 +160,7 @@ def main():
         print("No image paths found in paw_prints.csv — nothing to do.")
         return
 
-    paths.sort(key=lambda p: extract_date(p) or "0000")
+    paths.sort(key=lambda p: extract_date(p, Path(p)) or "0000")
 
     CC_TO_NAME = {
         "AF": "Afghanistan", "AL": "Albania", "DZ": "Algeria", "AR": "Argentina",
@@ -154,7 +171,7 @@ def main():
         "DE": "Germany", "GR": "Greece", "HK": "Hong Kong", "HU": "Hungary",
         "IN": "India", "ID": "Indonesia", "IE": "Ireland", "IL": "Israel",
         "IT": "Italy", "JP": "Japan", "JO": "Jordan", "KZ": "Kazakhstan",
-        "KE": "Kenya", "KR": "South Korea", "LV": "Latvia", "LT": "Lithuania",
+        "KE": "Kenya", "KR": "South Korea", "LA": "Laos", "LV": "Latvia", "LT": "Lithuania",
         "LU": "Luxembourg", "MY": "Malaysia", "MX": "Mexico", "NL": "Netherlands",
         "NZ": "New Zealand", "NG": "Nigeria", "NO": "Norway", "PK": "Pakistan",
         "PE": "Peru", "PH": "Philippines", "PL": "Poland", "PT": "Portugal",
@@ -177,7 +194,7 @@ def main():
     for i, src_path in enumerate(tqdm(paths, desc="Processing images"), 1):
         src = Path(src_path)
         oid = f"paw_{i:03d}"
-        ext = src.suffix.lower() or ".jpg"
+        ext = ".jpg"
         dest_name = f"{oid}{ext}"
         dest = OBJ_DIR / dest_name
 
@@ -186,9 +203,17 @@ def main():
             errors.append(src_path)
             continue
 
+        # Detect if source has changed; if so, wipe stale derivatives
+        changed = not dest.exists() or src.stat().st_size != dest.stat().st_size
         shutil.copy2(src, dest)
+        if changed:
+            for stale in [
+                OBJ_DIR / "small" / f"{oid}_sm.jpg",
+                OBJ_DIR / "thumbs" / f"{oid}_th.jpg",
+            ]:
+                stale.unlink(missing_ok=True)
 
-        date = extract_date(src_path)
+        date = extract_date(src_path, src)
         time = extract_time(src)
         lat, lon = extract_gps(src)
         spotter = extract_spotter(src)
@@ -230,6 +255,7 @@ def main():
             "image_small": small_path,
             "image_thumb": thumb_path,
             "spotter": spotter,
+            "source_file": src_path,
         })
 
     # Flush geo cache to disk
@@ -251,7 +277,7 @@ def main():
     print()
 
     print("Running rake generate_derivatives...")
-    subprocess.run(["bundle", "exec", "rake", "generate_derivatives[,,,false]"], cwd=REPO_ROOT, check=True, shell=True)
+    subprocess.run(["bundle", "exec", "rake", "generate_derivatives"], cwd=REPO_ROOT, check=True, shell=True)
 
     print("Deploying...")
     subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", str(REPO_ROOT / "deploy.ps1")], cwd=REPO_ROOT, shell=True)

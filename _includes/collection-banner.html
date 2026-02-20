@@ -51,6 +51,7 @@
     }
 }
 </style>
+<div class="container">
 <div id="home-banner" class="mb-0 position-relative">
     <div id="home-title-box">
         <div class="p-2 text-center text-black bg-dark bg-opacity-90">
@@ -64,6 +65,7 @@
     </div>
     {% unless jumboId contains '/' %}
     <a class="text-white fs-6 position-absolute bottom-0 end-0 px-2 bg-dark bg-opacity-75" href="{{ jumboLink }}" title="Visit background image record">Featured Image</a>{% endunless %}
+</div>
 </div>
 {%- else -%}
 <div class="container">

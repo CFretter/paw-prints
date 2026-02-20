@@ -6,6 +6,7 @@
 
 require 'image_optim' unless Gem.win_platform?
 require 'mini_magick'
+require 'etc'
 
 def process_and_optimize_image(filename, file_type, output_filename, size, density)
   image_optim = ImageOptim.new(svgo: false) unless Gem.win_platform?
@@ -82,51 +83,64 @@ task :generate_derivatives, [:thumbs_size, :small_size, :density, :missing, :com
   # CSV output
   list_name = File.join(objects_dir, 'object_list.csv')
   field_names = 'filename,object_location,image_small,image_thumb'.split(',')
+
+  files = Dir.glob(File.join(objects_dir, '*')).reject do |f|
+    File.directory?(f) || File.basename(f) == 'README.md' || File.basename(f) == 'object_list.csv'
+  end
+
+  num_threads = [Etc.nprocessors, files.size].min
+  queue   = Queue.new
+  files.each { |f| queue << f }
+
+  mutex    = Mutex.new
+  csv_rows = []
+
+  threads = num_threads.times.map do
+    Thread.new do
+      while (filename = (queue.pop(true) rescue nil))
+        extname   = File.extname(filename).downcase
+        file_type = EXTNAME_TYPE_MAP[extname]
+        unless file_type
+          mutex.synchronize do
+            puts "Skipping file with unsupported extension: #{filename}"
+            csv_rows << [File.basename(filename), "/#{filename}", nil, nil]
+          end
+          next
+        end
+
+        base_filename  = File.basename(filename, '.*').downcase
+        thumb_filename = File.join(thumb_image_dir, "#{base_filename}_th.jpg")
+        small_filename = File.join(small_image_dir,  "#{base_filename}_sm.jpg")
+
+        if args.compress_originals == 'true'
+          mutex.synchronize { puts "Optimizing: #{filename}" }
+          process_and_optimize_image(filename, file_type, filename, nil, nil)
+        end
+
+        if args.missing == 'false' || !File.exist?(thumb_filename)
+          process_and_optimize_image(filename, file_type, thumb_filename, args.thumbs_size, args.density)
+        else
+          mutex.synchronize { puts "Skipping: #{thumb_filename} already exists" }
+        end
+
+        if args.missing == 'false' || !File.exist?(small_filename)
+          process_and_optimize_image(filename, file_type, small_filename, args.small_size, args.density)
+        else
+          mutex.synchronize { puts "Skipping: #{small_filename} already exists" }
+        end
+
+        mutex.synchronize do
+          csv_rows << [File.basename(filename), "/#{filename}", "/#{small_filename}", "/#{thumb_filename}"]
+        end
+      end
+    end
+  end
+
+  threads.each(&:join)
+
   CSV.open(list_name, 'w') do |csv|
     csv << field_names
-
-    # Iterate over all files in the objects directory.
-    Dir.glob(File.join(objects_dir, '*')).each do |filename|
-      # Skip subdirectories and the README.md file.
-      if File.directory?(filename) || File.basename(filename) == 'README.md' || File.basename(filename) == 'object_list.csv'
-        next
-      end
-
-      # Determine the file type and skip if unsupported.
-      extname = File.extname(filename).downcase
-      file_type = EXTNAME_TYPE_MAP[extname]
-      unless file_type
-        puts "Skipping file with unsupported extension: #{filename}"
-        csv << ["#{File.basename(filename)}", "/#{filename}", nil, nil]
-        next
-      end
-
-      # Get the lowercase filename without any leading path and extension.
-      base_filename = File.basename(filename, '.*').downcase
-
-      # Optimize the original image.
-      if args.compress_originals == 'true'
-        puts "Optimizing: #{filename}"
-        process_and_optimize_image(filename, file_type, filename, nil, nil)
-      end
-
-      # Generate the thumb image.
-      thumb_filename = File.join(thumb_image_dir, "#{base_filename}_th.jpg")
-      if args.missing == 'false' || !File.exist?(thumb_filename)
-        process_and_optimize_image(filename, file_type, thumb_filename, args.thumbs_size, args.density)
-      else
-        puts "Skipping: #{thumb_filename} already exists"
-      end
-
-      # Generate the small image.
-      small_filename = File.join([small_image_dir, "#{base_filename}_sm.jpg"])
-      if (args.missing == 'false') || !File.exist?(small_filename)
-        process_and_optimize_image(filename, file_type, small_filename, args.small_size, args.density)
-      else
-        puts "Skipping: #{small_filename} already exists"
-      end
-      csv << ["#{File.basename(filename)}", "/#{filename}", "/#{small_filename}", "/#{thumb_filename}"]
-    end
+    csv_rows.sort_by { |r| r[0] }.each { |r| csv << r }
   end
   puts "\e[32mSee '#{list_name}' for list of objects and derivatives created.\e[0m"
 end

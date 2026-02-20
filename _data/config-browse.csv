@@ -6,4 +6,5 @@ creator,Creator,,,
 species,,,true,,Species
 location,,true,,,Location Depicted
 country,,true,,,Country
+spotter,,,true,,
 identifier,,,true,Identifier
