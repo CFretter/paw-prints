@@ -8,6 +8,7 @@ species,Species,true,,DCTERMS.subject,keywords
 location,Location,true,,DCTERMS.coverage,contentLocation
 latitude,Latitude,,,,
 longitude,Longitude,,,,
+spotter,Spotted by,,,DCTERMS.creator,
 source,Source,,,,
 identifier,Source Identifier,,,,
 language,Language,,,DCTERMS.language,

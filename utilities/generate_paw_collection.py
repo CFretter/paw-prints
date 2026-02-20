@@ -20,6 +20,7 @@ import reverse_geocoder
 from tqdm import tqdm
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
+from PIL import IptcImagePlugin
 
 # Paths
 REPO_ROOT = Path(__file__).parent.parent
@@ -46,6 +47,7 @@ FIELDNAMES = [
     "object_location",
     "image_small",
     "image_thumb",
+    "spotter",
 ]
 
 
@@ -112,6 +114,23 @@ def extract_time(image_path: Path) -> str:
         return ""
 
 
+def extract_spotter(image_path: Path) -> str:
+    """Return IPTC Credit (2, 110) value, or 'Christoph' if absent or empty."""
+    try:
+        img = Image.open(image_path)
+        iptc = IptcImagePlugin.getiptcinfo(img)
+        if iptc:
+            credit = iptc.get((2, 110), b"")
+            if isinstance(credit, list):
+                credit = credit[0]
+            value = credit.decode("utf-8", errors="replace").strip()
+            if value:
+                return value
+    except Exception:
+        pass
+    return "Christoph"
+
+
 def main():
     OBJ_DIR.mkdir(exist_ok=True)
 
@@ -169,6 +188,7 @@ def main():
         date = extract_date(src_path)
         time = extract_time(src)
         lat, lon = extract_gps(src)
+        spotter = extract_spotter(src)
         title = f"Paw Print {i}" + (f" ({date})" if date else "")
 
         location = ""
@@ -204,6 +224,7 @@ def main():
             "object_location": obj_path,
             "image_small": obj_path,
             "image_thumb": obj_path,
+            "spotter": spotter,
         })
 
     # Flush geo cache to disk
