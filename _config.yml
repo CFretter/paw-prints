@@ -8,9 +8,9 @@
 # URL VARIABLES
 #
 # site domain, full URL to the production location of your collection
-url: https://cfretter.github.io
+url: https://paws.fretter.eu
 # path to location on the domain if necessary e.g. /digital/hjccc
-baseurl: /paw-prints
+baseurl: ""
 # location of code, the full url to your github repository
 source-code: https://github.com/CFretter/paw-prints
 

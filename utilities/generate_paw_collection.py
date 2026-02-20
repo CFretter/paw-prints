@@ -14,6 +14,7 @@ import json
 import random
 import re
 import shutil
+import subprocess
 from pathlib import Path
 
 import reverse_geocoder
@@ -142,6 +143,8 @@ def main():
         print("No image paths found in paw_prints.csv — nothing to do.")
         return
 
+    paths.sort(key=lambda p: extract_date(p) or "0000")
+
     CC_TO_NAME = {
         "AF": "Afghanistan", "AL": "Albania", "DZ": "Algeria", "AR": "Argentina",
         "AU": "Australia", "AT": "Austria", "BE": "Belgium", "BR": "Brazil",
@@ -205,7 +208,9 @@ def main():
                 country_name = CC_TO_NAME.get(cc, cc)
                 geo_cache[cache_key] = [location, country_name]
 
-        obj_path = f"/objects/{dest_name}"
+        obj_path   = f"/objects/{dest_name}"
+        small_path = f"/objects/small/{oid}_sm.jpg"
+        thumb_path = f"/objects/thumbs/{oid}_th.jpg"
         rows.append({
             "objectid": oid,
             "title": title,
@@ -222,8 +227,8 @@ def main():
             "format": "image/jpeg",
             "display_template": "image",
             "object_location": obj_path,
-            "image_small": obj_path,
-            "image_thumb": obj_path,
+            "image_small": small_path,
+            "image_thumb": thumb_path,
             "spotter": spotter,
         })
 
@@ -244,9 +249,12 @@ def main():
         for e in errors:
             print(f"    {e}")
     print()
-    print("Next steps:")
-    print("  1. Run 'bundle exec jekyll serve' to preview the site")
-    print("  2. Optionally run 'rake generate_derivatives' to create thumbnails/small images")
+
+    print("Running rake generate_derivatives...")
+    subprocess.run(["bundle", "exec", "rake", "generate_derivatives[,,,false]"], cwd=REPO_ROOT, check=True, shell=True)
+
+    print("Deploying...")
+    subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", str(REPO_ROOT / "deploy.ps1")], cwd=REPO_ROOT, shell=True)
 
 
 if __name__ == "__main__":
