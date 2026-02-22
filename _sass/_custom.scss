@@ -14,7 +14,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* page title link — keep heading colour, no underline */
 #title h1 a {
-    color: inherit;
+    color: #d0d0d0;
     text-decoration: none;
 }
 
@@ -64,19 +64,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* mobile navbar — current page label, centered */
-@media (max-width: 991.98px) {
-    .navbar > .container {
-        position: relative;
-    }
-}
 .mobile-current-page {
-    position: absolute;
-    left: 0;
-    right: 0;
-    text-align: center;
     font-size: 1rem;
     color: rgba(255,255,255,0.85);
-    pointer-events: none;
 }
 
 /* timeline — year range links and :target row highlight */
@@ -88,9 +78,24 @@ h3 a[href^="#y"] {
         color: #fff;
     }
 }
-#timeline tr:target {
+#timeline tr:target,
+#timeline tr:target > th,
+#timeline tr:target > td {
+    --bs-table-bg: transparent;
+    --bs-table-accent-bg: transparent;
+    --bs-table-striped-bg: transparent;
     background-color: transparent !important;
     outline: none;
+    box-shadow: none;
+}
+
+/* breadcrumbs — light text on dark background */
+.breadcrumb-item a {
+    color: #d0d0d0;
+    text-decoration: none;
+}
+.breadcrumb-item.active {
+    color: #d0d0d0;
 }
 
 /* location labels on item pages — styled to match word cloud buttons */

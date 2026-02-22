@@ -5,13 +5,26 @@ layout: page
 <style>
 @media (max-width: 576px) {
   #home-banner {
-    padding: 1rem 0;
+    padding: 3rem 0;
+  }
+}
+@media (min-width: 768px) {
+  #home-banner {
+    padding: 1.5rem 0;
   }
 }
 @media (min-width: 768px) {
   .home-carousel-col {
     display: flex;
     flex-direction: column;
+    flex: 0 0 60%;
+    max-width: 60%;
+    width: 60%;
+  }
+  .home-sidebar-col {
+    flex: 0 0 40%;
+    max-width: 40%;
+    width: 40%;
   }
   .home-carousel-col > .card {
     flex: 1;
@@ -42,7 +55,7 @@ layout: page
     {% include index/carousel.html title="Sample Items" %}
 
   </div>
-  <div class="col-md-4">
+  <div class="col-md-4 home-sidebar-col">
 
     {% include index/time.html %}
 
