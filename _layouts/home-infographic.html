@@ -2,28 +2,55 @@
 # Default home page with boxes providing collection stats
 layout: page
 ---
-<div class="row">
+<style>
+@media (max-width: 576px) {
+  #home-banner {
+    padding: 1rem 0;
+  }
+}
+@media (min-width: 768px) {
+  .home-carousel-col {
+    display: flex;
+    flex-direction: column;
+  }
+  .home-carousel-col > .card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .home-carousel-col > .card > .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .home-carousel-col #imageCarousel {
+    flex: 1;
+    min-height: 300px;
+  }
+  .home-carousel-col #imageCarousel .carousel-inner {
+    height: 100%;
+  }
+  .home-carousel-col #imageCarousel .carousel-item {
+    height: 100% !important;
+  }
+}
+</style>
+<div class="row align-items-stretch">
 
-  <div class="col-md-8">
+  <div class="col-md-8 home-carousel-col">
 
-    {% include index/description.html %}
     {% include index/carousel.html title="Sample Items" %}
-    
+
   </div>
-  <div class="col-md-4">  
+  <div class="col-md-4">
 
     {% include index/time.html %}
 
-    {% include index/featured-terms.html field="subject" title="Top Subjects" btn-color="primary" %}
+    {% include index/featured-terms.html field="species" title="Top Species" btn-color="primary" %}
 
     {% include index/featured-terms.html field="location" title="Locations" btn-color="outline-secondary" %}
-    
+
     {% include index/content.html %}
-
-  </div>
-  <div class="col-md-12">
-
-    {% include index/data-download.html %}
 
   </div>
 

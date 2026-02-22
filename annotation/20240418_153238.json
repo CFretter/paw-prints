@@ -1,0 +1,17 @@
+{
+  "version": "5.11.2.dev36+g6aa4cb867",
+  "flags": {
+    "cat": false,
+    "dog": true,
+    "human": false,
+    "cow": false,
+    "monitor lizard": false,
+    "wheel": false,
+    "unknown": false
+  },
+  "shapes": [],
+  "imagePath": "20240418_153238.jpg",
+  "imageData": null,
+  "imageHeight": 4000,
+  "imageWidth": 3000
+}

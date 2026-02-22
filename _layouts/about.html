@@ -56,9 +56,9 @@ layout: default
 </div>
 {% endif %}
 
-<div id="about-wrapper">
+<div id="about-wrapper"{% if page.toc == false %} class="no-toc"{% endif %}>
+    {% unless page.toc == false %}
     <div id="about-toc-wrapper">
-        {% unless page.toc == false %}
         <div id="about-toc">
             <div id="about-toc-title">
                 <button class="btn btn-light" data-bs-toggle="collapse" data-bs-target="#about-toc-list" aria-expanded="false" aria-controls="about-toc-list">
@@ -68,12 +68,12 @@ layout: default
                     </svg>
                 </button>
             </div>
-            <div id="about-toc-list" class="collapse" > 
+            <div id="about-toc-list" class="collapse" >
             {% include cb/jekyll-toc.html html=content sanitize=true h_min=1 h_max=3 skip_no_ids=true class="jekyll-toc-list" credits=page.credits %}
             </div>
         </div>
-        {% endunless %}
     </div>
+    {% endunless %}
     <div id="about-contents-wrapper">
         {{ content }}
     </div>

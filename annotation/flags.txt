@@ -1,0 +1,13 @@
+cat
+dog
+human
+cow
+monitor lizard
+wheel
+leaf
+whole cat
+whole human foot
+whole sandal
+whole shoe
+bird
+unknown

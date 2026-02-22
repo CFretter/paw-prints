@@ -11,7 +11,6 @@ Run from the repo root or from the utilities/ directory:
 
 import csv
 import json
-import random
 import re
 import shutil
 import subprocess
@@ -24,11 +23,13 @@ from PIL.ExifTags import TAGS, GPSTAGS
 from PIL import IptcImagePlugin
 
 # Paths
-REPO_ROOT = Path(__file__).parent.parent
-SRC_CSV = REPO_ROOT / "_data" / "paw_prints.csv"
-OUT_CSV = REPO_ROOT / "_data" / "paw-print-repository.csv"
-OBJ_DIR = REPO_ROOT / "objects"
+REPO_ROOT      = Path(__file__).parent.parent
+SRC_CSV        = REPO_ROOT / "_data" / "paw_prints.csv"
+OUT_CSV        = REPO_ROOT / "_data" / "paw-print-repository.csv"
+OBJ_DIR        = REPO_ROOT / "objects"
 GEO_CACHE_FILE = REPO_ROOT / "_data" / "geo_cache.json"
+ANNOTATION_MAP = REPO_ROOT / "_data" / "annotation_map.csv"
+ANNOTATION_DIR = REPO_ROOT / "annotation"
 
 FIELDNAMES = [
     "objectid",
@@ -149,6 +150,22 @@ def extract_spotter(image_path: Path) -> str:
     return "Christoph"
 
 
+def _read_species(src_path: str, annotation_map: dict) -> str:
+    """Return semicolon-joined true flags from the LabelMe .json sidecar, or ''."""
+    ann_file = annotation_map.get(src_path)
+    if not ann_file:
+        return ""
+    json_path = ANNOTATION_DIR / (Path(ann_file).stem + ".json")
+    if not json_path.exists():
+        return ""
+    try:
+        data = json.loads(json_path.read_text(encoding="utf-8"))
+        active = [k for k, v in data.get("flags", {}).items() if v]
+        return ";".join(active)
+    except Exception:
+        return ""
+
+
 def main():
     OBJ_DIR.mkdir(exist_ok=True)
 
@@ -187,6 +204,13 @@ def main():
         geo_cache = json.loads(GEO_CACHE_FILE.read_text(encoding="utf-8"))
     else:
         geo_cache = {}
+
+    # Load annotation map (source_file -> annotation_file)
+    annotation_map = {}
+    if ANNOTATION_MAP.exists():
+        with open(ANNOTATION_MAP, newline="", encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                annotation_map[row["source_file"]] = row["annotation_file"]
 
     rows = []
     errors = []
@@ -243,7 +267,7 @@ def main():
             "time": time,
             "description": "",
             "subject": "",
-            "species": random.choice(["species1", "species2", "species3"]),
+            "species": _read_species(src_path, annotation_map),
             "location": location,
             "country": country_name,
             "latitude": lat,
