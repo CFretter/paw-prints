@@ -73,7 +73,7 @@ metadata: paw-print-repository
 # provide a relative path in this repository or full url 
 lib-assets: /assets/lib
 # ignore stuff
-exclude: [docs/, Rakefile, rakelib/, README.md, LICENSE, CITATION.cff, CODE_OF_CONDUCT.md, CONTRIBUTING.md, SECURITY.md, annotation/]
+exclude: [docs/, Rakefile, rakelib/, README.md, LICENSE, CITATION.cff, CODE_OF_CONDUCT.md, CONTRIBUTING.md, SECURITY.md, annotation/, objects/src]
 # compress CSS output
 sass:
   style: compressed

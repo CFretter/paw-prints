@@ -27,6 +27,7 @@ REPO_ROOT      = Path(__file__).parent.parent
 SRC_CSV        = REPO_ROOT / "_data" / "paw_prints.csv"
 OUT_CSV        = REPO_ROOT / "_data" / "paw-print-repository.csv"
 OBJ_DIR        = REPO_ROOT / "objects"
+SRC_DIR        = OBJ_DIR / "src"
 GEO_CACHE_FILE = REPO_ROOT / "_data" / "geo_cache.json"
 ANNOTATION_MAP = REPO_ROOT / "_data" / "annotation_map.csv"
 ANNOTATION_DIR = REPO_ROOT / "annotation"
@@ -168,6 +169,7 @@ def _read_species(src_path: str, annotation_map: dict) -> str:
 
 def main():
     OBJ_DIR.mkdir(exist_ok=True)
+    SRC_DIR.mkdir(exist_ok=True)
 
     # Read source paths
     with open(SRC_CSV, newline="", encoding="utf-8") as f:
@@ -220,7 +222,7 @@ def main():
         oid = f"paw_{i:03d}"
         ext = ".jpg"
         dest_name = f"{oid}{ext}"
-        dest = OBJ_DIR / dest_name
+        dest = SRC_DIR / dest_name
 
         if not src.exists():
             print(f"  WARNING: source not found, skipping — {src_path}")
@@ -232,8 +234,9 @@ def main():
         shutil.copy2(src, dest)
         if changed:
             for stale in [
-                OBJ_DIR / "small" / f"{oid}_sm.jpg",
-                OBJ_DIR / "thumbs" / f"{oid}_th.jpg",
+                OBJ_DIR / "full"   / f"{oid}.webp",
+                OBJ_DIR / "small"  / f"{oid}_sm.webp",
+                OBJ_DIR / "thumbs" / f"{oid}_th.webp",
             ]:
                 stale.unlink(missing_ok=True)
 
@@ -257,9 +260,9 @@ def main():
                 country_name = CC_TO_NAME.get(cc, cc)
                 geo_cache[cache_key] = [location, country_name]
 
-        obj_path   = f"/objects/{dest_name}"
-        small_path = f"/objects/small/{oid}_sm.jpg"
-        thumb_path = f"/objects/thumbs/{oid}_th.jpg"
+        obj_path   = f"/objects/full/{oid}.webp"
+        small_path = f"/objects/small/{oid}_sm.webp"
+        thumb_path = f"/objects/thumbs/{oid}_th.webp"
         rows.append({
             "objectid": oid,
             "title": title,
@@ -273,7 +276,7 @@ def main():
             "latitude": lat,
             "longitude": lon,
             "type": "Image",
-            "format": "image/jpeg",
+            "format": "image/webp",
             "display_template": "image",
             "object_location": obj_path,
             "image_small": small_path,

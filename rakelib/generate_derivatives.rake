@@ -1,54 +1,44 @@
 ###############################################################################
 # TASK: generate_derivatives
 #
-# create small and thumb images for image and pdf files in the 'objects' folder
+# create full, small, and thumb WebP images for image and pdf files in the
+# 'objects/src' folder, writing derivatives to 'objects/full', 'objects/small',
+# and 'objects/thumbs'
 ###############################################################################
 
-require 'image_optim' unless Gem.win_platform?
 require 'mini_magick'
 require 'etc'
 
-def process_and_optimize_image(filename, file_type, output_filename, size, density)
-  image_optim = ImageOptim.new(svgo: false) unless Gem.win_platform?
-  if filename == output_filename && file_type == :image && !Gem.win_platform?
-    puts "Optimizing: #{filename}"
-    begin
-      image_optim.optimize_image!(output_filename)
-    rescue StandardError => e
-      puts "Error optimizing #{filename}: #{e.message}"
+def process_derivative_image(filename, file_type, output_filename, size, density, quality)
+  puts "Creating: #{output_filename}"
+  begin
+    if file_type == :pdf
+      inputfile = "#{filename}[0]"
+      magick = MiniMagick.convert
+      magick.density(density)
+      magick << inputfile
+      magick.resize(size) if size
+      magick.flatten
+      magick.quality(quality)
+      magick << output_filename
+      magick.call
+    else
+      magick = MiniMagick.convert
+      magick << filename
+      magick.resize(size) if size
+      magick.flatten
+      magick.quality(quality)
+      magick << output_filename
+      magick.call
     end
-  elsif filename == output_filename && file_type == :pdf
-    puts "Skipping: #{filename}"
-  else
-    puts "Creating: #{output_filename}"
-    begin
-      if file_type == :pdf
-        inputfile = "#{filename}[0]"
-        magick = MiniMagick.convert
-        magick.density(density)
-        magick << inputfile
-        magick.resize(size)
-        magick.flatten
-        magick << output_filename
-        magick.call
-      else
-        magick = MiniMagick.convert
-        magick << filename
-        magick.resize(size)
-        magick.flatten
-        magick << output_filename
-        magick.call
-      end
-      image_optim.optimize_image!(output_filename) unless Gem.win_platform?
-    rescue StandardError => e
-      puts "Error creating #{filename}: #{e.message}"
-    end
+  rescue StandardError => e
+    puts "Error creating #{output_filename}: #{e.message}"
   end
 end
 
 
 desc 'Generate derivative image files from collection objects'
-task :generate_derivatives, [:thumbs_size, :small_size, :density, :missing, :compress_originals, :input_dir] do |_t, args|
+task :generate_derivatives, [:thumbs_size, :small_size, :density, :missing, :quality, :input_dir, :output_dir] do |_t, args|
   # set default arguments
   # default image size is based on max pixel width they will appear in the base template features
   args.with_defaults(
@@ -56,17 +46,20 @@ task :generate_derivatives, [:thumbs_size, :small_size, :density, :missing, :com
     small_size: '800x800',
     density: '300',
     missing: 'true',
-    compress_originals: 'false',
-    input_dir: 'objects'
+    quality: '80',
+    input_dir: 'objects/src',
+    output_dir: 'objects'
   )
 
   # set the folder locations
-  objects_dir = args.input_dir
-  thumb_image_dir = objects_dir + '/thumbs'
-  small_image_dir = objects_dir + '/small'
+  input_dir  = args.input_dir
+  output_dir = args.output_dir
+  full_image_dir  = output_dir + '/full'
+  thumb_image_dir = output_dir + '/thumbs'
+  small_image_dir = output_dir + '/small'
 
   # Ensure that the output directories exist.
-  [objects_dir, thumb_image_dir, small_image_dir].each do |dir|
+  [input_dir, full_image_dir, thumb_image_dir, small_image_dir].each do |dir|
     FileUtils.mkdir_p(dir) unless Dir.exist?(dir)
   end
 
@@ -81,10 +74,10 @@ task :generate_derivatives, [:thumbs_size, :small_size, :density, :missing, :com
   }.freeze
 
   # CSV output
-  list_name = File.join(objects_dir, 'object_list.csv')
+  list_name = File.join(output_dir, 'object_list.csv')
   field_names = 'filename,object_location,image_small,image_thumb'.split(',')
 
-  files = Dir.glob(File.join(objects_dir, '*')).reject do |f|
+  files = Dir.glob(File.join(input_dir, '*')).reject do |f|
     File.directory?(f) || File.basename(f) == 'README.md' || File.basename(f) == 'object_list.csv'
   end
 
@@ -109,28 +102,30 @@ task :generate_derivatives, [:thumbs_size, :small_size, :density, :missing, :com
         end
 
         base_filename  = File.basename(filename, '.*').downcase
-        thumb_filename = File.join(thumb_image_dir, "#{base_filename}_th.jpg")
-        small_filename = File.join(small_image_dir,  "#{base_filename}_sm.jpg")
+        full_filename  = File.join(full_image_dir,  "#{base_filename}.webp")
+        thumb_filename = File.join(thumb_image_dir, "#{base_filename}_th.webp")
+        small_filename = File.join(small_image_dir,  "#{base_filename}_sm.webp")
 
-        if args.compress_originals == 'true'
-          mutex.synchronize { puts "Optimizing: #{filename}" }
-          process_and_optimize_image(filename, file_type, filename, nil, nil)
+        if args.missing == 'false' || !File.exist?(full_filename)
+          process_derivative_image(filename, file_type, full_filename, nil, args.density, args.quality)
+        else
+          mutex.synchronize { puts "Skipping: #{full_filename} already exists" }
         end
 
         if args.missing == 'false' || !File.exist?(thumb_filename)
-          process_and_optimize_image(filename, file_type, thumb_filename, args.thumbs_size, args.density)
+          process_derivative_image(filename, file_type, thumb_filename, args.thumbs_size, args.density, args.quality)
         else
           mutex.synchronize { puts "Skipping: #{thumb_filename} already exists" }
         end
 
         if args.missing == 'false' || !File.exist?(small_filename)
-          process_and_optimize_image(filename, file_type, small_filename, args.small_size, args.density)
+          process_derivative_image(filename, file_type, small_filename, args.small_size, args.density, args.quality)
         else
           mutex.synchronize { puts "Skipping: #{small_filename} already exists" }
         end
 
         mutex.synchronize do
-          csv_rows << [File.basename(filename), "/#{filename}", "/#{small_filename}", "/#{thumb_filename}"]
+          csv_rows << [File.basename(filename), "/#{full_filename}", "/#{small_filename}", "/#{thumb_filename}"]
         end
       end
     end

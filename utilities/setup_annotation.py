@@ -64,6 +64,21 @@ def main():
 
     # Load existing mapping
     mapping = load_map()
+
+    # Remove entries no longer in the CSV
+    current_paths = set(paths)
+    removed_count = 0
+    for src_path in list(mapping):
+        if src_path not in current_paths:
+            ann_name = mapping.pop(src_path)
+            img_file = ANNOTATION_DIR / ann_name
+            json_file = ANNOTATION_DIR / (Path(ann_name).stem + ".json")
+            if img_file.exists():
+                img_file.unlink()
+            if json_file.exists():
+                json_file.unlink()
+            removed_count += 1
+
     taken = set(mapping.values())  # annotation filenames already reserved
 
     new_count = 0
@@ -96,6 +111,8 @@ def main():
     print(f"\nDone.")
     print(f"  {new_count} image(s) newly copied to annotation/")
     print(f"  {skip_count} image(s) already mapped (skipped)")
+    if removed_count:
+        print(f"  {removed_count} image(s) removed (no longer in CSV)")
     if error_count:
         print(f"  {error_count} source file(s) not found and skipped")
   

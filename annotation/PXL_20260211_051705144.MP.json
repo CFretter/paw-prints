@@ -1,0 +1,26 @@
+{
+  "version": "5.11.2.dev36+g6aa4cb867",
+  "flags": {
+    "cat": false,
+    "dog": false,
+    "human": false,
+    "cow": false,
+    "monitor lizard": false,
+    "wheel": false,
+    "leaf": false,
+    "whole cat": false,
+    "whole human foot": false,
+    "whole sandal": false,
+    "whole shoe": false,
+    "bird": false,
+    "water meter": false,
+    "velociraptor": false,
+    "mystery": true,
+    "unknown": false
+  },
+  "shapes": [],
+  "imagePath": "PXL_20260211_051705144.MP.jpg",
+  "imageData": null,
+  "imageHeight": 4624,
+  "imageWidth": 3472
+}
