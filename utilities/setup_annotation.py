@@ -7,12 +7,6 @@ Maintains _data/annotation_map.csv as a stable source_file → annotation_file m
 
 Run from the repo root or from the utilities/ directory:
     python utilities/setup_annotation.py
-
-Workflow after running:
-  1. Open the annotation/ folder in Explorer.
-  2. For each image, create a .txt file with the same stem (e.g. IMG_8176.txt).
-  3. Write the species tag on the first line (e.g. "cat").
-  4. Re-run generate_paw_collection.py — it reads the tags automatically.
 """
 
 import csv
@@ -104,9 +98,7 @@ def main():
     print(f"  {skip_count} image(s) already mapped (skipped)")
     if error_count:
         print(f"  {error_count} source file(s) not found and skipped")
-    print(f"\nNext step: open the annotation/ folder and create .txt sidecars.")
-    print(f"  Example: create annotation/CIMG3046.txt containing just 'cat'")
-
+  
 
 if __name__ == "__main__":
     main()

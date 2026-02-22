@@ -1,0 +1,23 @@
+{
+  "version": "5.11.2.dev36+g6aa4cb867",
+  "flags": {
+    "cat": true,
+    "dog": false,
+    "human": false,
+    "cow": false,
+    "monitor lizard": false,
+    "wheel": false,
+    "leaf": false,
+    "whole cat": true,
+    "whole human foot": false,
+    "whole sandal": false,
+    "whole shoe": false,
+    "bird": false,
+    "unknown": false
+  },
+  "shapes": [],
+  "imagePath": "20250111_185011.jpg",
+  "imageData": null,
+  "imageHeight": 3000,
+  "imageWidth": 4000
+}

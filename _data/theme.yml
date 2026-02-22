@@ -110,7 +110,7 @@ bootswatch: slate
 # THEME FONTS [optional!]
 base-font-size: 1.2em
 text-color: "#d0d0d0"
-link-color: "#79c0ff"
+link-color: "#d0d0d0"
 base-font-family: "Crimson Text"
 font-cdn: <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&display=swap" rel="stylesheet">
 
