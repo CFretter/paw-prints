@@ -306,6 +306,9 @@ def main():
     print("Running rake generate_derivatives...")
     subprocess.run(["bundle", "exec", "rake", "generate_derivatives"], cwd=REPO_ROOT, check=True, shell=True)
 
+    print("Running rake generate_banner...")
+    subprocess.run(["bundle", "exec", "rake", "generate_banner"], cwd=REPO_ROOT, check=True, shell=True)
+
     print("Deploying...")
     subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", str(REPO_ROOT / "deploy.ps1")], cwd=REPO_ROOT, shell=True)
 

@@ -27,33 +27,47 @@
 {% assign jumboSrc = jumboId | relative_url %}
 {% else %}
 {% assign jumboItem = site.data[site.metadata] | where: "objectid", jumboId | first %}
-{% capture jumboSrc %}{{ jumboItem.object_location | default: jumboItem.image_small | relative_url }}{% endcapture %}
+{% capture jumboSrc %}{{ site.data.theme.banner-image | default: jumboItem.image_small | default: jumboItem.object_location | relative_url }}{% endcapture %}
 {% capture jumboLink %}{{ '/items/' | relative_url }}{% if jumboItem.parentid %}{{ jumboItem.parentid }}.html#{{ jumboItem.objectid }}{% else %}{{ jumboItem.objectid }}.html{% endif %}{% endcapture %}
 {%- endif -%}
 
 <style>
-#home-banner {
-    padding: 1rem 0;
-    background-image: url({{ jumboSrc }});
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: {{ page.banner-image-position | default: site.data.theme.home-banner-image-position | default: 'center' }};
+#home-banner-img {
+    width: 100%;
+    height: auto;
+    display: block;
 }
-{% if page.banner-padding or site.data.theme.home-title-y-padding %}
 #home-title-box {
-    padding-top: {{ page.banner-padding | default: site.data.theme.home-title-y-padding }};
-    padding-bottom: 1em;
+    padding-top: 0.5em;
 }
-{%- endif -%}
-@media screen and (max-width: 576px) {
+#home-banner-featured-link {
+    z-index: 1;
+}
+/* mobile: title sits below the image, not overlaid */
+@media (max-width: 767.98px) {
     #home-title-box {
-        padding-top: min({{ page.banner-padding | default: site.data.theme.home-title-y-padding | default: '5em' }}, 45vh);
+        position: static !important;
+    }
+    #home-title-box h1 {
+        font-size: 1.75rem;
+    }
+    #home-title-box p {
+        font-size: 0.9rem;
+    }
+    #home-banner-featured-link {
+        top: auto !important;
+        bottom: 0 !important;
     }
 }
 </style>
 <div class="container">
 <div id="home-banner" class="mb-0 position-relative">
-    <div id="home-title-box">
+    <div id="home-banner-image-wrap" class="position-relative">
+        <img id="home-banner-img" src="{{ jumboSrc }}" alt="">
+        {% unless jumboId contains '/' %}
+        <a id="home-banner-featured-link" class="text-white fs-6 position-absolute top-0 end-0 px-2 bg-dark bg-opacity-75" href="{{ jumboLink }}" title="Visit background image record">Featured Image</a>{% endunless %}
+    </div>
+    <div id="home-title-box" class="position-absolute bottom-0 start-0 end-0">
         <div class="p-2 text-center bg-dark bg-opacity-90">
             {% if site.organization-logo-nav %}
             <a class="d-none d-md-block" href="{{ site.organization-link }}">
@@ -63,8 +77,6 @@
             {% if site.tagline %}<p class="mb-0">{{ site.tagline }}</p>{% endif %}
         </div>
     </div>
-    {% unless jumboId contains '/' %}
-    <a class="text-white fs-6 position-absolute bottom-0 end-0 px-2 bg-dark bg-opacity-75" href="{{ jumboLink }}" title="Visit background image record">Featured Image</a>{% endunless %}
 </div>
 </div>
 {%- else -%}
