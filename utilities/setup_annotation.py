@@ -1,7 +1,7 @@
 """
 setup_annotation.py
 
-Copies each source image from _data/paw_prints.csv into the annotation/ folder
+Copies each source image from _data/paw_sources.csv into the annotation/ folder
 using the original filename. Handles duplicate filenames by appending _2, _3, etc.
 Maintains _data/annotation_map.csv as a stable source_file → annotation_file mapping.
 
@@ -16,7 +16,7 @@ from pathlib import Path
 from tqdm import tqdm
 
 REPO_ROOT      = Path(__file__).parent.parent
-SRC_CSV        = REPO_ROOT / "_data" / "paw_prints.csv"
+SRC_CSV        = REPO_ROOT / "_data" / "paw_sources.csv"
 ANNOTATION_MAP = REPO_ROOT / "_data" / "annotation_map.csv"
 ANNOTATION_DIR = REPO_ROOT / "annotation"
 
@@ -59,7 +59,7 @@ def main():
         paths = [row["image_path"].strip() for row in csv.DictReader(f) if row["image_path"].strip()]
 
     if not paths:
-        print("No image paths found in paw_prints.csv — nothing to do.")
+        print(f"No image paths found in {SRC_CSV.name} — nothing to do.")
         return
 
     # Load existing mapping

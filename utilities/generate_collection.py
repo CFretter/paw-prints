@@ -1,12 +1,12 @@
 """
-generate_paw_collection.py
+generate_collection.py
 
-Reads _data/paw_prints.csv (one column: image_path) and:
-  1. Copies each image into objects/ as paw_001.jpg, paw_002.jpg, …
-  2. Writes _data/paw-print-repository.csv with CollectionBuilder metadata
+Reads _data/<slug>_sources.csv (one column: image_path) and:
+  1. Copies each image into objects/ as <slug>_001.jpg, <slug>_002.jpg, …
+  2. Writes _data/<slug>-repository.csv with CollectionBuilder metadata
 
 Run from the repo root or from the utilities/ directory:
-    python utilities/generate_paw_collection.py
+    python utilities/generate_collection.py
 """
 
 import csv
@@ -22,10 +22,32 @@ from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 from PIL import IptcImagePlugin
 
-# Paths
+# ── Collection configuration ──────────────────────────────────────────────────
+COLLECTION = {
+    "slug":            "paw",        # object ID prefix (paw_001) and CSV name basis
+    "display_name":    "Paw Print",  # title prefix: "Paw Print 1 (2024-03-01)"
+    "default_spotter": "Christoph",  # fallback when IPTC Credit absent
+}
+
+# Maps CSV column name → LabelMe JSON key to read from the annotation sidecar.
+# Add entries here to include additional annotation-derived fields.
+ANNOTATION_FIELDS = {
+    "species": "flags",
+}
+
+# Static values written to every row of the output CSV.
+METADATA_DEFAULTS = {
+    "type":             "Image",
+    "format":           "image/webp",
+    "display_template": "image",
+    "description":      "",
+    "subject":          "",
+}
+
+# ── Paths ─────────────────────────────────────────────────────────────────────
 REPO_ROOT      = Path(__file__).parent.parent
-SRC_CSV        = REPO_ROOT / "_data" / "paw_prints.csv"
-OUT_CSV        = REPO_ROOT / "_data" / "paw-print-repository.csv"
+SRC_CSV        = REPO_ROOT / "_data" / f"{COLLECTION['slug']}_sources.csv"
+OUT_CSV        = REPO_ROOT / "_data" / f"{COLLECTION['slug']}-repository.csv"
 OBJ_DIR        = REPO_ROOT / "objects"
 SRC_DIR        = OBJ_DIR / "src"
 GEO_CACHE_FILE = REPO_ROOT / "_data" / "geo_cache.json"
@@ -37,16 +59,12 @@ FIELDNAMES = [
     "title",
     "date",
     "time",
-    "description",
-    "subject",
-    "species",
+    *METADATA_DEFAULTS,       # description, subject, type, format, display_template
+    *ANNOTATION_FIELDS,       # species (and any future annotation-derived fields)
     "location",
     "country",
     "latitude",
     "longitude",
-    "type",
-    "format",
-    "display_template",
     "object_location",
     "image_small",
     "image_thumb",
@@ -134,8 +152,8 @@ def extract_time(image_path: Path) -> str:
         return ""
 
 
-def extract_spotter(image_path: Path) -> str:
-    """Return IPTC Credit (2, 110) value, or 'Christoph' if absent or empty."""
+def extract_spotter(image_path: Path, default: str = "") -> str:
+    """Return IPTC Credit (2, 110) value, or default if absent or empty."""
     try:
         img = Image.open(image_path)
         iptc = IptcImagePlugin.getiptcinfo(img)
@@ -148,11 +166,11 @@ def extract_spotter(image_path: Path) -> str:
                 return value
     except Exception:
         pass
-    return "Christoph"
+    return default
 
 
-def _read_species(src_path: str, annotation_map: dict) -> str:
-    """Return semicolon-joined true flags from the LabelMe .json sidecar, or ''."""
+def _read_annotation(src_path: str, annotation_map: dict, json_key: str) -> str:
+    """Return semicolon-joined true flags from the LabelMe .json sidecar for json_key, or ''."""
     ann_file = annotation_map.get(src_path)
     if not ann_file:
         return ""
@@ -161,7 +179,7 @@ def _read_species(src_path: str, annotation_map: dict) -> str:
         return ""
     try:
         data = json.loads(json_path.read_text(encoding="utf-8"))
-        active = [k for k, v in data.get("flags", {}).items() if v]
+        active = [k for k, v in data.get(json_key, {}).items() if v]
         return ";".join(active)
     except Exception:
         return ""
@@ -176,7 +194,7 @@ def main():
         paths = [row["image_path"].strip() for row in csv.DictReader(f) if row["image_path"].strip()]
 
     if not paths:
-        print("No image paths found in paw_prints.csv — nothing to do.")
+        print(f"No image paths found in {SRC_CSV.name} — nothing to do.")
         return
 
     paths.sort(key=lambda p: extract_date(p, Path(p)) or "0000")
@@ -219,7 +237,7 @@ def main():
 
     for i, src_path in enumerate(tqdm(paths, desc="Processing images"), 1):
         src = Path(src_path)
-        oid = f"paw_{i:03d}"
+        oid = f"{COLLECTION['slug']}_{i:03d}"
         ext = ".jpg"
         dest_name = f"{oid}{ext}"
         dest = SRC_DIR / dest_name
@@ -243,8 +261,8 @@ def main():
         date = extract_date(src_path, src)
         time = extract_time(src)
         lat, lon = extract_gps(src)
-        spotter = extract_spotter(src)
-        title = f"Paw Print {i}" + (f" ({date})" if date else "")
+        spotter = extract_spotter(src, default=COLLECTION["default_spotter"])
+        title = f"{COLLECTION['display_name']} {i}" + (f" ({date})" if date else "")
 
         location = ""
         country_name = ""
@@ -268,16 +286,13 @@ def main():
             "title": title,
             "date": date,
             "time": time,
-            "description": "",
-            "subject": "",
-            "species": _read_species(src_path, annotation_map),
+            **METADATA_DEFAULTS,
+            **{col: _read_annotation(src_path, annotation_map, key)
+               for col, key in ANNOTATION_FIELDS.items()},
             "location": location,
             "country": country_name,
             "latitude": lat,
             "longitude": lon,
-            "type": "Image",
-            "format": "image/webp",
-            "display_template": "image",
             "object_location": obj_path,
             "image_small": small_path,
             "image_thumb": thumb_path,

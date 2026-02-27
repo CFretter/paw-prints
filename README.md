@@ -9,19 +9,78 @@ Visit the [CollectionBuilder Docs](https://collectionbuilder.github.io/cb-docs/)
 ## Brief Overview of Building a Collection
 
 The [CollectionBuilder Docs](https://collectionbuilder.github.io/cb-docs/) contain detailed information about building a collection from start to finish--including installing software, using Git/GitHub, preparing digital objects, and formatting metadata.
-However, here is a super quick overview of the process:
-
-- Make your own copy of this template repository by clicking the green "Use this Template" button on GitHub (see [repository set up docs](https://collectionbuilder.github.io/cb-docs/docs/repository/)). This copy of the template is the starting point for your "project repository", i.e. the source code for your digital collection site!
-- Prepare your collection metadata following the CB-CSV template (see our demo [metadata template on Google Sheets](https://docs.google.com/spreadsheets/d/1nN_k4JQB4LJraIzns7WcM3OXK-xxGMQhW1shMssflNM/edit?usp=sharing) and [metadata docs](https://collectionbuilder.github.io/cb-docs/docs/metadata/csv_metadata/)). Your metadata will include links to your digital files (images, pdfs, videos, etc) and thumbnails wherever they are hosted.
 - Add your metadata as a CSV to your project repository's "_data" folder (see [upload metadata docs](https://collectionbuilder.github.io/cb-docs/docs/metadata/uploading/)).
 - Edit your project's "_config.yml" with your collection information (see [site configuration docs](https://collectionbuilder.github.io/cb-docs/docs/config/)). Additional customization is done via a theme file, configuration files, CSS tweaks, and more--however, once your "_config.yml" is edited your site is ready to be previewed. 
 - Generate your site using Jekyll! (see docs for how to [use Jekyll locally](https://collectionbuilder.github.io/cb-docs/docs/repository/generate/) and [deploy on the web](https://collectionbuilder.github.io/cb-docs/docs/deploy/))
 
-Please feel free to ask questions in the main [CollectionBuilder discussion forum](https://github.com/CollectionBuilder/collectionbuilder.github.io/discussions).
 
 ----------
 
-## CollectionBuilder 
+## Workflow
+
+### Prerequisites
+
+- Ruby + Bundler (`bundle install`)
+- Python 3 + dependencies (`pip install pillow tqdm reverse_geocoder`)
+- ImageMagick (used by the rake tasks via `mini_magick`)
+- WSL with `lftp` installed (for deployment)
+- A `deploy.env.ps1` file in the repo root (not committed) that sets `$RemoteHost`, `$RemoteUser`, and `$RemotePath`
+
+### Configuration
+
+All collection-specific settings live at the top of [utilities/generate_collection.py](utilities/generate_collection.py):
+
+| Block | What it controls |
+|---|---|
+| `COLLECTION` | Slug (used for object IDs and CSV filenames), display name, default spotter |
+| `ANNOTATION_FIELDS` | Maps output CSV column names to LabelMe JSON keys (e.g. `"species" → "flags"`) |
+| `METADATA_DEFAULTS` | Static field values written to every row (`type`, `format`, `display_template`, etc.) |
+
+The CollectionBuilder metadata pointer in [_config.yml](_config.yml) (`metadata:`) and the banner image in [_data/theme.yml](_data/theme.yml) (`featured-image:`) also need to stay in sync with the slug.
+
+### 1. Add images
+
+Add absolute paths to source images (one per line) in `_data/paw_sources.csv` under the `image_path` column.
+
+### 2. Annotate species (optional)
+
+```powershell
+python utilities/setup_annotation.py
+```
+
+This copies each new source image into `annotation/` (preserving filenames, deduplicating if needed) and keeps `_data/annotation_map.csv` up to date. Open the `annotation/` folder in [LabelMe](https://github.com/labelmeai/labelme), set the species flags on each image, and save. The JSON sidecars are read automatically in the next step.
+
+### 3. Generate the collection and deploy
+
+```powershell
+python utilities/generate_collection.py
+```
+
+This does everything in one shot:
+
+1. Reads `_data/paw_sources.csv`, copies images to `objects/src/` as `paw_001.jpg`, `paw_002.jpg`, …
+2. Extracts EXIF date/time/GPS and IPTC spotter from each image
+3. Reverse-geocodes GPS coordinates to city + country (cached in `_data/geo_cache.json`)
+4. Reads species flags from LabelMe annotation JSON sidecars
+5. Writes `_data/paw-repository.csv` with all metadata
+6. Runs `rake generate_derivatives` — converts source images to WebP at full, small (`800×800`), and thumb (`450×`) sizes
+7. Runs `rake generate_banner` — crops the `featured-image` from `_data/theme.yml` to `assets/img/banner.webp`
+8. Runs `deploy.ps1` — builds the Jekyll site and deploys via SFTP (lftp over WSL)
+
+### Deploy only
+
+To rebuild and redeploy without reprocessing images:
+
+```powershell
+bundle exec rake generate_banner   # optional, if banner changed
+powershell -ExecutionPolicy Bypass -File deploy.ps1
+```
+
+`deploy.ps1` builds the Jekyll site with `JEKYLL_ENV=production` and mirrors `_site/` to the remote server via SFTP, skipping `.jpg` files (only WebP derivatives are served).
+
+----------
+
+## CollectionBuilder
 
 <https://collectionbuilder.github.io/>
 
@@ -31,12 +90,3 @@ Powered by the open source static site generator [Jekyll](https://jekyllrb.com/)
 The basic theme is created using [Bootstrap](https://getbootstrap.com/).
 Metadata visualizations are built using open source libraries such as [DataTables](https://datatables.net/), [Leafletjs](http://leafletjs.com/), [Spotlight gallery](https://github.com/nextapps-de/spotlight), [lazysizes](https://github.com/aFarkas/lazysizes), and [Lunr.js](https://lunrjs.com/).
 Object metadata is exposed using [Schema.org](http://schema.org) and [Open Graph protocol](http://ogp.me/) standards.
-
-Questions can be directed to **collectionbuilder.team@gmail.com**
-
-## License
-
-CollectionBuilder documentation and general web content is licensed [Creative Commons Attribution-ShareAlike 4.0 International](http://creativecommons.org/licenses/by-sa/4.0/). 
-This license does *NOT* include any objects or images used in digital collections, which may have individually applied licenses described by a "rights" field.
-CollectionBuilder code is licensed [MIT](https://github.com/CollectionBuilder/collectionbuilder-csv/blob/master/LICENSE). 
-This license does not include external dependencies included in the `assets/lib` directory, which are covered by their individual licenses.
